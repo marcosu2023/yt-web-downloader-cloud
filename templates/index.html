@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    :root { --bg:#0b1220; --card:#121a2b; --muted:#9fb0d6; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:#e8eefc; margin:0; }
+    header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:rgba(0,0,0,.15); position:sticky; top:0; backdrop-filter: blur(8px); }
+    h1 { font-size:18px; margin:0; }
+    a { color:#93c5fd; text-decoration:none; }
+    .wrap { max-width: 880px; margin: 20px auto; padding: 0 16px; }
+    .card { background:var(--card); padding:16px; border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    label { display:block; font-size:14px; color:var(--muted); margin-bottom:6px; }
+    input[type="text"] { width:100%; padding:12px; border-radius:12px; border:1px solid #2a3550; background:#0c1424; color:#e8eefc; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    select, input[type="checkbox"] { padding:8px; border-radius:8px; border:1px solid #2a3550; background:#0c1424; color:#e8eefc; }
+    button { padding:12px 16px; border:0; border-radius:12px; background:#3b82f6; color:#fff; font-weight:600; cursor:pointer; }
+    .msgs { margin:12px 0; }
+    .msg { margin:6px 0; font-size:14px; }
+    .err { color:#ff9aa2; }
+    .ok { color:#a7f3d0; }
+    table { width:100%; margin-top:16px; border-collapse: collapse; }
+    th, td { padding:10px; border-bottom:1px solid #263152; font-size:14px; }
+    th { text-align:left; color:var(--muted); }
+    .filename { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; display:inline-block; vertical-align:middle; }
+    .hint { color:var(--muted); font-size: 12px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⬇️ {{ title }}</h1>
+    <div><a href="/logout">Logout</a></div>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        <div class="msgs">
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="msg {{cat}}">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+        </div>
+      {% endwith %}
+
+      <form method="post" action="/download">
+        <label for="url">Video URL</label>
+        <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+
+        <div class="row">
+          <div>
+            <label for="max_height">Max Height</label>
+            <select id="max_height" name="max_height">
+              <option value="2160">2160p</option>
+              <option value="1440">1440p</option>
+              <option value="1080" selected>1080p</option>
+              <option value="720">720p</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+            </select>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <label><input type="checkbox" name="force_mp4" checked> Force MP4 (recode if needed)</label>
+          </div>
+          <div style="align-self:end;">
+            <button type="submit">Download</button>
+          </div>
+        </div>
+        <div class="hint">Files are stored in: <code>{{ download_dir }}</code> on the server</div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2 style="font-size:16px; margin-top:0; color:var(--muted);">Downloaded Files</h2>
+      {% if files %}
+      <table>
+        <thead><tr><th>File</th><th style="width:140px">Action</th></tr></thead>
+        <tbody>
+          {% for f in files %}
+          <tr>
+            <td><span class="filename">{{ f }}</span></td>
+            <td><a href="{{ url_for('files', filename=f) }}">Download</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="msg">No files yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
